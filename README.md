@@ -17,26 +17,26 @@ Você pode realizar pelo Portal Azure (cliques) ou, opcionalmente, pela Azure CL
 ---
 
 ### 1) Criar Resource Group
-- Portal: Resource groups > Create > Nome: `rg-az900-lab` > Region: `Brazil South` > Review + Create.
+- Portal: Resource groups > Create > Nome: `lab-dio-az900` > Region: `Brazil South` > Review + Create.
 - CLI (opcional):
 ```bash
-az group create -n rg-az900-lab -l brazilsouth
+az group create -n lab-dio-az900 -l brazilsouth
 ```
 
 ### 2) Criar Virtual Network e Sub-redes
-- Portal: Virtual networks > Create > Nome: `vnet-az900` > RG: `rg-az900-lab` > Address space: `10.0.0.0/16`.
+- Portal: Virtual networks > Create > Nome: `vnet-az900` > RG: `lab-dio-az900` > Address space: `10.0.0.0/16`.
   - Subnet1 (web): `snet-web` com `10.0.1.0/24`
   - Subnet2 (app): `snet-app` com `10.0.2.0/24` > Create.
 - CLI (opcional):
 ```bash
-az network vnet create -g rg-az900-lab -n vnet-az900 \
+az network vnet create -g lab-dio-az900 -n vnet-az900 \
   --address-prefix 10.0.0.0/16 --subnet-name snet-web --subnet-prefix 10.0.1.0/24
-az network vnet subnet create -g rg-az900-lab --vnet-name vnet-az900 \
+az network vnet subnet create -g lab-dio-az900 --vnet-name vnet-az900 \
   -n snet-app --address-prefixes 10.0.2.0/24
 ```
 
 ### 3) Criar Network Security Group (NSG) para a sub-rede web
-- Portal: Network security groups > Create > Nome: `nsg-web` > RG: `rg-az900-lab` > Create.
+- Portal: Network security groups > Create > Nome: `nsg-web` > RG: `lab-dio-az900` > Create.
   - Em `Inbound security rules`, adicione:
     - Allow HTTP (porta 80) de `Any`
     - Allow HTTPS (porta 443) de `Any`
@@ -44,24 +44,24 @@ az network vnet subnet create -g rg-az900-lab --vnet-name vnet-az900 \
   - Associe o NSG à subnet `snet-web`.
 - CLI (opcional):
 ```bash
-az network nsg create -g rg-az900-lab -n nsg-web
-az network nsg rule create -g rg-az900-lab --nsg-name nsg-web \
+az network nsg create -g lab-dio-az900 -n nsg-web
+az network nsg rule create -g lab-dio-az900 --nsg-name nsg-web \
   -n allow-http --priority 1000 --access Allow --protocol Tcp --direction Inbound --destination-port-ranges 80
-az network nsg rule create -g rg-az900-lab --nsg-name nsg-web \
+az network nsg rule create -g lab-dio-az900 --nsg-name nsg-web \
   -n allow-https --priority 1010 --access Allow --protocol Tcp --direction Inbound --destination-port-ranges 443
 # Substitua X.X.X.X/32 pelo seu IP público para restringir o SSH
-az network nsg rule create -g rg-az900-lab --nsg-name nsg-web \
+az network nsg rule create -g lab-dio-az900 --nsg-name nsg-web \
   -n allow-ssh --priority 1020 --access Allow --protocol Tcp --direction Inbound --source-address-prefixes X.X.X.X/32 --destination-port-ranges 22
-az network vnet subnet update -g rg-az900-lab --vnet-name vnet-az900 -n snet-web --network-security-group nsg-web
+az network vnet subnet update -g lab-dio-az900 --vnet-name vnet-az900 -n snet-web --network-security-group nsg-web
 ```
 
 ### 4) Provisionar uma VM Linux (Ubuntu) na subnet web
 - Portal: Virtual machines > Create > Azure virtual machine.
-  - RG: `rg-az900-lab`, Nome: `vm-web-01`, Região: `Brazil South`, Image: `Ubuntu 22.04 LTS`, Size: `B1s`.
+  - RG: `lab-dio-az900`, Nome: `vm-web-01`, Região: `Brazil South`, Image: `Ubuntu 22.04 LTS`, Size: `B1s`.
   - Autenticação por chave SSH (recomendado). Rede: VNet `vnet-az900`, Subnet `snet-web`, NSG: `nsg-web`.
 - CLI (opcional):
 ```bash
-az vm create -g rg-az900-lab -n vm-web-01 \
+az vm create -g lab-dio-az900 -n vm-web-01 \
   --image Ubuntu2204 --size Standard_B1s \
   --vnet-name vnet-az900 --subnet snet-web \
   --nsg nsg-web --public-ip-sku Standard \
@@ -69,10 +69,10 @@ az vm create -g rg-az900-lab -n vm-web-01 \
 ```
 
 ### 5) Criar uma Storage Account
-- Portal: Storage accounts > Create > RG: `rg-az900-lab` > Nome único: `staz900<seu-sufixo>` > Region: `Brazil South` > Performance: `Standard` > Redundância: `LRS` > Create.
+- Portal: Storage accounts > Create > RG: `lab-dio-az900` > Nome único: `staz900<seu-sufixo>` > Region: `Brazil South` > Performance: `Standard` > Redundância: `LRS` > Create.
 - CLI (opcional):
 ```bash
-az storage account create -g rg-az900-lab -n staz900seusufixo -l brazilsouth --sku Standard_LRS
+az storage account create -g lab-dio-az900 -n staz900seusufixo -l brazilsouth --sku Standard_LRS
 ```
 
 ### 6) Criar um App Service (Web App)
@@ -80,8 +80,8 @@ az storage account create -g rg-az900-lab -n staz900seusufixo -l brazilsouth --s
   - Region: `Brazil South` > App Service plan: criar `asp-az900` (SKU gratuito F1) > Nome único: `webaz900-<seu-sufixo>` > Review + Create.
 - CLI (opcional):
 ```bash
-az appservice plan create -g rg-az900-lab -n asp-az900 --sku F1 --is-linux
-az webapp create -g rg-az900-lab -p asp-az900 -n webaz900-seusufixo --runtime "PYTHON:3.12"
+az appservice plan create -g lab-dio-az900 -n asp-az900 --sku F1 --is-linux
+az webapp create -g lab-dio-az900 -p asp-az900 -n webaz900-seusufixo --runtime "PYTHON:3.12"
 ```
 
 ### 7) Habilitar monitoramento básico
@@ -95,10 +95,10 @@ az webapp create -g rg-az900-lab -p asp-az900 -n webaz900-seusufixo --runtime "P
 - Verifique métricas e alertas em Azure Monitor.
 
 ### 9) Limpeza (para evitar custos)
-- Portal: Delete o Resource Group `rg-az900-lab`.
+- Portal: Delete o Resource Group `lab-dio-az900`.
 - CLI (opcional):
 ```bash
-az group delete -n rg-az900-lab --yes --no-wait
+az group delete -n lab-dio-az900 --yes --no-wait
 ```
 
 ---
